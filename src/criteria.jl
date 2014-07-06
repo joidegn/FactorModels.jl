@@ -4,24 +4,23 @@ factor_residual_variance(fm::FactorModel) = sum(fm.factor_residuals.^2)/apply(*,
 
 
 
-
 function criterion_cumulative_variance(pca_result, threshold=0.95)   # simply use factors until a certain threshold of variance is reached
     pca_result.cumulative_variance .< threshold  # take threshold% of variance 
 end
 
 # PCp criteria as defined on page 201 of Bai and Ng 2002
-function criterion_PCp1(fm::FactorModel)
-    fm_unrestricted = FactorModel(fm.y, fm.w, fm.x)
+function criterion_PCp1(fm::FactorModel; kmax=8)  # be careful! kmax is set as in Bai, Ng 2002 which might make no sense in a different setting!
+    fm_unrestricted = FactorModel(fm.x, kmax)
     N_plus_T_by_NT = apply(+, size(fm.x))/apply(*, size(fm.x))
     factor_residual_variance(fm) + fm.number_of_factors*factor_residual_variance(fm_unrestricted)*(N_plus_T_by_NT)*log(N_plus_T_by_NT^-1)
 end
-function criterion_PCp2(fm::FactorModel)
-    fm_unrestricted = FactorModel(fm.y, fm.w, fm.x)
+function criterion_PCp2(fm::FactorModel; kmax=8)
+    fm_unrestricted = FactorModel(fm.x, kmax)  # kmax is set as in Bai, Ng 2002
     N_plus_T_by_NT = apply(+, size(fm.x))/apply(*, size(fm.x))
     factor_residual_variance(fm) + sum(fm.number_of_factors)*factor_residual_variance(fm_unrestricted)*(N_plus_T_by_NT)*log(minimum(size(fm.x)))
 end
-function criterion_PCp3(fm::FactorModel)
-    fm_unrestricted = FactorModel(fm.y, fm.w, fm.x)
+function criterion_PCp3(fm::FactorModel; kmax=8)
+    fm_unrestricted = FactorModel(fm.x, kmax)   # kmax is set as in Bai, Ng 2002
     N_plus_T_by_NT = apply(+, size(fm.x))/apply(*, size(fm.x))
     factor_residual_variance(fm) + sum(fm.number_of_factors)*factor_residual_variance(fm_unrestricted)*log(minimum(size(fm.x)))/minimum(size(fm.x))
 end

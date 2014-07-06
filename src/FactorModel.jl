@@ -34,9 +34,9 @@ type FactorModel
         models = [apply(FactorModel, (x, number_of_factors, number_of_factors_criterion, factor_type, targeted_predictors)) for number_of_factors in 1:max_factors]
         # we keep all the models in memory which can be a problem depending on the dimensions of x. TODO: will refactor later when debugging and testing is done
         criteria = [calculate_criterion(model) for model in models]
-        println("criteria_values: ", criteria)
         return models[indmin(criteria[1:max_factors])]  # keep the model with the best information criterion
     end
+
 end
 
 
