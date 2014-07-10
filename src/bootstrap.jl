@@ -47,8 +47,9 @@ end
 function wild_bootstrap(fm::FactorModel, B::Int, stat::Function)  # resample residuals and multiply by random Variable with mean 0 and variance 1, do that B times and calculate statistic stat
     stats = Array(Float64, B)
     for b in 1:B
-        resampled_factor_residuals = fm.factor_residuals[rand(Distributions.DiscreteUniform(1, size(fm.x, 1)), size(fm.x, 1)), :]
-        resampled_x = fm.factors[:, 1:fm.number_of_factors]*fm.loadings[:, 1:fm.number_of_factors]' + apply(vcat, [resampled_factor_residuals[t, :] .* randn() for t in 1:size(resampled_factor_residuals, 1)])
+        resampled_x = fm.factors[:, 1:fm.number_of_factors]*fm.loadings[:, 1:fm.number_of_factors]' + apply(vcat, [fm.factor_residuals[t, :] .* randn() for t in 1:size(resampled_factor_residuals, 1)])
+        #factor_residuals = fm.factor_residuals[rand(Distributions.DiscreteUniform(1, size(fm.x, 1)), size(fm.x, 1)), :]
+        #resampled_x = fm.factors[:, 1:fm.number_of_factors]*fm.loadings[:, 1:fm.number_of_factors]' + apply(vcat, [resampled_factor_residuals[t, :] .* randn() for t in 1:size(resampled_factor_residuals, 1)])
         stats[b] = stat(FactorModel(resampled_x, fm.number_of_factors, fm.number_of_factors_criterion, fm.factor_type, fm.targeted_predictors))
     end
     stats
