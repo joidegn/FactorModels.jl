@@ -1,4 +1,5 @@
 using DimensionalityReduction
+using Gadfly
 
 
 # TODO: approximate (generalized) principal components rather than principal components could be more efficient for N > T
@@ -84,6 +85,21 @@ function calculate_factors(x::Matrix, factor_type::String="principal components"
         warn("can not estimate more than `minimum(size(x))` factors with $factor_type. Number of factors set to $number_of_factors")
     end
     return factors, loadings, number_of_factors
+end
+
+function scree_plot(x::Array{Float64, 2}, max_factors::Int64=size(x, 2); file_name::String="")
+    eigen_values = principal_components(x)[3][1:max_factors]
+    plt = plot(
+        layer(x=[1:length(eigen_values)], y=eigen_values, Geom.point, Theme(default_color=color("green"))),
+        layer(x=[1:length(eigen_values)], y=eigen_values, Geom.line),
+        Guide.XLabel("Number of Factors"), Guide.YLabel("Eigenvalue"),
+        Scale.y_continuous(format=:plain),
+        Scale.x_discrete
+    )
+    if length(file_name) > 0
+        draw(PNG(file_name, 20cm, 15cm), plt)
+    end
+    plt
 end
 
 function Base.show(io::IO, fm::FactorModel)
