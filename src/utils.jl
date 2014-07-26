@@ -142,3 +142,22 @@ function generate_ar(params=[0.4, 0.3, 0.2, 0.1], innovations=[])
     ar
 end
 generate_ar(params=[0.4, 0.3, 0.2, 0.1], size_series=(1004, )) = generate_ar(params, apply(randn, size_series))
+function diebold_mariano(forecasts1, forecasts2, true_values, significance_level=0.05; test_type="one sided")  # could use another error function than squared error, correct for correlation, allow different forecasting window, etc...
+    # taken from function dm.test from R package forecast
+    residuals1, residuals2 = true_values .- forecasts1, true_values .- forecasts2
+    differential = residuals1.^2 .- residuals2.^2
+    d_cov = autocov(differential, [0])
+    d_var = d_cov[1]  # R function corrects for covariance here but there is no covariance for h=1
+    # see dm.test R-function in forecast package
+    dm_stat = mean(differential)/(sqrt(d_var))
+    n = length(differential)
+    k = sqrt(n+1-2+(1/n))  # Harvey, Leybourne, Newbold (1997) note that h has been set to 1 here
+    corrected_dm_stat = dm_stat * k
+    if test_type=="one sided"
+    # test whether forecasts2 are better than forecasts1
+        p_value = 1 - cdf(TDist(n-1), corrected_dm_stat)
+    else
+        p_value = 2 * cdf(TDist(n-1), -abs(corrected_dm_stat))
+    end
+    corrected_dm_stat, p_value, p_value < significance_level
+end
