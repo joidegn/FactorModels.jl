@@ -6,7 +6,9 @@ type DynamicFactorModel
     function DynamicFactorModel(factor_model_args::Tuple)
         factor_model = FactorModel(factor_model_args...)
         number_of_factor_lags = estimate_number_of_lags(factor_model)  # if number of factor lags are not given we estimate them
-        new(factor_model, number_of_factor_lags)
+        warn("Automatic recognition of the number of factor lags is not implemented yet")
+        # TODO: this is undone! number_of_factor_lags has to be estimated from frequency domain transformation
+        new(factor_model)
     end
     function DynamicFactorModel(factor_model_args::Tuple, number_of_factor_lags::Int64)
         factor_model = FactorModel(factor_model_args...)
