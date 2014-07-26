@@ -1,6 +1,7 @@
 using Distributions
 using DataFrames
 using DataArrays
+using StatsBase
 # allow formulae to be updated by "adding" a string to them  TODO: pull request to DataFrames.jl?
 #+(formula::Formula, str::ASCIIString) = Formula(formula.lhs, convert(Symbol, *(string(formula.rhs), " + ", str)))
 

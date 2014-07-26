@@ -38,6 +38,6 @@ function wild_bootstrap(fm::FactorModel, B::Int, stat::Function)  # resample res
     stats
 end
 
-#y, x, f, lambdas, epsilon_x = factor_model_DGP(100, 60, 1; model="Breitung_Eickmeier_2011", b=0)
-#fm = FactorModel(x)
-#dfm = DynamicFactorModel((x,), 3)
+#y, x, f, lambdas, epsilon_x = factor_model_DGP(100, 60, 1; model="Breitung_Eickmeier_2011", b=2)
+#fm = FactorModel(x, "ICp2")
+#dfm = DynamicFactorModel((x, "ICp2"), 3)
