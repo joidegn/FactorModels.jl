@@ -68,7 +68,21 @@ catch
     return false
 end
 
-benchmark_forecasts(x::Array{Float64, 2}, y_index::Int64; num_predictions::Int=200) = ([mean(x[1:end-num_predictions+i, y_index]) for i in 1:num_predictions], x[end-num_predictions+1:end, y_index])
+# moving average
+benchmark_forecasts(x::Array{Float64, 2}, y_index::Int64; num_predictions::Int=100, window=10) = ([mean(x[end-num_predictions+i-1-window:end-num_predictions+i-1, y_index]) for i in 1:num_predictions], x[end-num_predictions+1:end, y_index])
+function benchmark_ar(y::Array{Float64, 1}, p=4::Int64; num_predictions::Int64=100)  # pseudo out-of-sample forecasts of an AR(p) model with constant term
+    predictions, true_values = Array(Float64,  num_predictions), Array(Float64,  num_predictions)
+    for t in length(y)-num_predictions+1:length(y)  # time we still have information on (pseudo out-of-sample)
+        idx = t - (length(y)-num_predictions)
+        w = lagged_matrix(y[1:t], [0:p])
+        yy, xx = w[1:end-1, 1], hcat(ones(size(w, 1)), w[:, 2:end])
+        new_y = yy[end]
+        design_matrix, new_x = xx[1:end-1, :], xx[end, :]  # we keep the last observation for forecasting
+        coefficients = inv(design_matrix'design_matrix)*design_matrix'yy
+        predictions[idx], true_values[idx] = (new_x*coefficients)[1], new_y
+    end
+    predictions, true_values
+end
 
 MSE(predictions, y) = sum((y-predictions).^2)/apply(*, size(y))
 
