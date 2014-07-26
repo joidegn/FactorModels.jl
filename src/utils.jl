@@ -142,6 +142,22 @@ function generate_ar(params=[0.4, 0.3, 0.2, 0.1], innovations=[])
     ar
 end
 generate_ar(params=[0.4, 0.3, 0.2, 0.1], size_series=(1004, )) = generate_ar(params, apply(randn, size_series))
+
+function matrix_to_table(matrix::Matrix)  # makes a latex table from a matrix
+    row_strs = Array(String, size(matrix, 1))
+    for row in 1:size(matrix, 1)
+        row_str = vcat([string(matrix[row, i], " & ") for i in 1:size(matrix, 2)], ["\\\\ \n"])
+        row_strs[row] = apply(string, row_str)
+    end
+    apply(string, row_strs)
+end
+
+function print_matrix(mat)  # prints a whole matrix without the dots
+    for row in 1:size(mat, 1)
+        println(mat[row, :])
+    end
+end
+
 function diebold_mariano(forecasts1, forecasts2, true_values, significance_level=0.05; test_type="one sided")  # could use another error function than squared error, correct for correlation, allow different forecasting window, etc...
     # taken from function dm.test from R package forecast
     residuals1, residuals2 = true_values .- forecasts1, true_values .- forecasts2
