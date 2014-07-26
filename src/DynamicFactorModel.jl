@@ -20,9 +20,10 @@ end
 # transforms x to the space spanned by the factors and optionally only selects active factors
 #   type="active" returns only the active factors (which explain enough of the variance)
 function get_factors(dfm::DynamicFactorModel, x::Matrix, factors="active")
+    # TODO: this function makes no sense like this, there are no break indices in the model anymore
     break_indices = [0, dfm.break_indices, size(dfm.x, 1)]
     rotations = [loadings * inv(loadings'loadings) for loadings in dfm.loadings] # simplifies to loadings if T>N and loadings = inv(loadings')  which makes sense given x = F * loadings'
-    [(normalize(x[:, dfm.targeted_predictors], (mean(dfm.x), std(dfm.x)))*rotations[i-1])[break_indices[i-1]+1:break_indices[i], factors=="active" ? (1:dfm.number_of_factors) : (1:end)] for i in 2:length(break_indices)]
+    [(normalize(x, (mean(dfm.factor_model.x), std(dfm.factor_model.x)))*rotations[i-1])[break_indices[i-1]+1:break_indices[i], factors=="active" ? (1:dfm.number_of_factors) : (1:end)] for i in 2:length(break_indices)]
 end
 
 function make_factor_model_design_matrix(y, number_of_lags, factors, number_of_factors, number_of_factor_lags, break_indices)
