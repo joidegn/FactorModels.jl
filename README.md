@@ -36,7 +36,7 @@ This estimates a linear model using number\_of\_lags lags of y, number\_of\_fact
 
 
 ## Features
-*Simulate and Estimate Dynamic factor models
-*Estimate the number of Factors
-*Use the estimation for prediction
-*Preselect predictors using soft and hard thresholding (see Bai, Jushan, and Serena Ng. "Forecasting economic time series using targeted predictors." Journal of Econometrics 146.2 (2008): 304-317.)
+* Simulate and Estimate Dynamic factor models
+* Estimate the number of Factors
+* Use the estimation for prediction
+* Preselect predictors using soft and hard thresholding (see Bai, Jushan, and Serena Ng. "Forecasting economic time series using targeted predictors." Journal of Econometrics 146.2 (2008): 304-317.)
