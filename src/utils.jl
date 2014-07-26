@@ -85,8 +85,9 @@ function benchmark_ar(y::Array{Float64, 1}, p=4::Int64; num_predictions::Int64=1
 end
 
 MSE(predictions, y) = sum((y-predictions).^2)/apply(*, size(y))
+RMSE(predictions, y) = sqrt(MSE(predictions, y))
 
-function factor_model_DGP(T::Int, N::Int, r::Int; model::String="Bai_Ng_2002", b=0)  # T: length of series, N: number of variables, r dimension of factors, b break size
+function factor_model_DGP(T::Int, N::Int, r::Int; model::String="Bai_Ng_2002", b::Number=0, delta::Number=0, default_correlation=0.1)  # T: length of series, N: number of variables, r dimension of factors, b break size
     if model=="Breitung_Kretschmer_2004"  # factors follow AR(1) process
         # TODO
     end
@@ -97,9 +98,9 @@ function factor_model_DGP(T::Int, N::Int, r::Int; model::String="Bai_Ng_2002", b
         # note that r is equal to 1 in the paper
         f = randn(T, r)  # not specified in the paper
         Lambda = randn(N, r) .+ 1  # N(1,1)
-        lambda(t, i) = t < break_point ? Lambda[i, :] : Lambda[i, :] .+ b
+        lambda(t, i) = t < break_point ? Lambda[i, :] : Lambda[i, :] .+ b  # in other words: there is a break in all the variables
         epsilon = apply(hcat, [randn(T)*sigma[i] for i in 1:N])
-        x = Float64[(f[t, :]' * lambda(t, i))[1] for t = 1:T, i in 1:N] + epsilon
+        x = Float64[(f[t, :]' * lambda(t, i))[1] for t = 1:T, i in 1:N] + epsilon # note that lambda only depends on t because of structural breaks
         return(rand(T), x, f, Lambda, epsilon)  # for this DGP y doesnt matter (Breitung and Eickmeier dont look at prediction of y)
     end
 
@@ -113,6 +114,21 @@ function factor_model_DGP(T::Int, N::Int, r::Int; model::String="Bai_Ng_2002", b
         epsilon_y = randn(T)  # TODO: what should epsilon be?
         y = f*beta + epsilon_y # TODO: what should beta be?
         return(y, x, f, lambda, epsilon_x, epsilon_y)
+    end
+
+    if model=="single_break"  # delta meassures correlation between y and last column (i.e. amount of "information")
+        println("Generating data with break in last variable, break has size:", b, " correlation between y(first column) and last column is:", delta)
+        break_point = mod(T, 2) == 0 ? int(T/2) : int(ceil(T/2))  # note that the break occurs after the period break_point
+        #sigma = rand(Distributions.Uniform(0.5, 1.5), N)  # each variable has a different variance in the idiosyncratic error terms
+        correlation = Float64[default_correlation for y in 1:N, x in 1:N] + diagm(Float64[1-default_correlation for i in 1:N])  # correlation matrix with some correlation for all variables, unit variance
+        correlation[1,N] = correlation[N, 1] = delta
+        std = chol(correlation)'
+        f = randn(T, r)  # not specified in the paper
+        Lambda = randn(N, r) .+ 1  # N(1,1)
+        lambda(t, i) = i == r ? (t < break_point ? Lambda[i, :] : Lambda[i, :] .+ b) : Lambda[i, :]  # in other words: there is a break only in the last variable
+        epsilon = randn(T, N) * std
+        #x = Float64[(f[t, :]' * lambda(t, i))[1] for t = 1:T, i in 1:N] + epsilon  # note that lambda only depends on t because of structural breaks
+        return(epsilon, f, Lambda, epsilon)  # TODO: this is fake
     end
 
 end
