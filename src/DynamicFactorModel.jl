@@ -17,16 +17,6 @@ type DynamicFactorModel
 end
 
 
-function estimate_number_of_lags(fm::FactorModel)
-    # estimate a VAR of F_t on its own lags to determine number of lags (see Bai Ng (2007))
-    # we could also use a HAC estimator (see page 75 of Breitung, Eickmeier 2011 but this can be less efficient in small samples)
-end
-
-function bic_criterion()
-    T = 
-    log(var(residuals)) + k*log(T)/T # from Bai Ng (2008)
-end
-
 # transforms x to the space spanned by the factors and optionally only selects active factors
 #   type="active" returns only the active factors (which explain enough of the variance)
 function get_factors(dfm::DynamicFactorModel, x::Matrix, factors="active")
