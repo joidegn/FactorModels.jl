@@ -102,21 +102,24 @@ function calculate_criterion(fm::FactorModel)
     return(number_of_factors_criterion_value)
 end
 
-function predict(fm::FactorModel, y::Array{Float64, 1}, h::Int64=1, number_of_lags::Int64=5)
+function predict(fm::FactorModel, y::Array{Float64, 1}, h::Int64=1, number_of_lags::Int64=5, number_of_factors::Int64=0)
+    if number_of_factors == 0  # number of factors can be given to set them to a different value in the forecasting equation than in the factor equation
+        println("using the same number of factors for forecasting as in the factor equation: ", fm.number_of_factors)
+        number_of_factors = fm.number_of_factors
+    end
     # makes a h step ahead forecast of y (which can also be in the factor model)
     w = lagged_matrix(y, [0, [h:number_of_lags+h-1]])
     # estimate y_{t+h} = alpha'w_t + Gamma'x_t
 
-    #WAIT A SEC... do I have to take only factors with t=... or for all of the ts?
-
-    y, x = w[2:end, 1], hcat(w[:, 2:end], fm.factors[end-size(w,1)+1:end, 1:fm.number_of_factors])
-    new_x, design_matrix = x[1,:], x[2:end, :]  # we reserve the last observation for prediction and dont use it for learning
+    y, x = w[1:end-1, 1], hcat(w[:, 2:end], fm.factors[end-size(w,1)+1:end, 1:number_of_factors])  # last observation of y is reserved for prediction
+    x = hcat(ones(size(x, 1)), x)  # add a constant term to the regression
+    new_x, design_matrix = x[end,:], x[1:end-1, :]  # we reserve the last observation for prediction and dont use it for learning
     coefficients = inv(design_matrix'design_matrix)*design_matrix'y
     prediction = new_x*coefficients
-    #residuals = y - prediction
+    residuals = y - design_matrix*coefficients
     #hat_matrix = design_matrix*inv(design_matrix'design_matrix)*design_matrix'
     #residual_variance = (residuals.^2)./(1.-diag(hat_matrix))  # HC 2
     #coefficient_covariance = inv(design_matrix'design_matrix)*(design_matrix'diagm(residual_variance)design_matrix)*inv(design_matrix'design_matrix)
      
-    return(prediction[1])
+    return(residuals, prediction[1])
 end

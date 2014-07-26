@@ -47,27 +47,37 @@ function Base.show(io::IO, dfm::DynamicFactorModel)
     # TODO: visual separation between coefficients for factors and lags
 end
 
-function predict(dfm::DynamicFactorModel, y::Array{Float64, 1}, h::Int64=1, number_of_lags::Int64=5)
+function predict(dfm::DynamicFactorModel, y::Array{Float64, 1}, h::Int64=1, number_of_lags::Int64=5, number_of_factors::Int64=0)
+    if number_of_factors == 0  # number of factors can be given to set them to a different value in the forecasting equation than in the factor equation
+        println("using the same number of factors for forecasting as in the factor equation: ", dfm.factor_model.number_of_factors)
+        number_of_factors = dfm.factor_model.number_of_factors
+    end
     # makes a h step ahead forecast of y using a linear regression on lags of y and static factors
     start_index_w = number_of_lags > dfm.number_of_factor_lags ? 1 : (dfm.number_of_factor_lags-number_of_lags+1)  # we might have to cut off the first few obs due to lagging
-    start_index_factor_lags = number_of_lags > dfm.number_of_factor_lags ? (number_of_lags-dfm.number_of_factor_lags+1) : 1  # we might have to cut off the first few obs due to lagging
+    start_index_factor_lags = number_of_lags > dfm.number_of_factor_lags ? (number_of_lags-dfm.number_of_factor_lags+1) : 1  # and we have to check if more due to factors of due to lags of y
     w = lagged_matrix(y, [0, [h:number_of_lags+h-1]])[start_index_w:end, :]
-    factor_lags = apply(hcat, [lagged_matrix(dfm.factor_model.factors[:, i], Int64[0:dfm.number_of_factor_lags]) for i in 1:dfm.factor_model.number_of_factors])[start_index_factor_lags:end, :]
-    # estimate y_{t+h} = alpha'w_t + Gamma'x_t
+
+    # matrix of factors and their lags
+    factor_lags = apply(hcat, [lagged_matrix(dfm.factor_model.factors[:, i], Int64[0:dfm.number_of_factor_lags]) for i in 1:number_of_factors])[start_index_factor_lags:end, :]
 
     y, x = w[2:end, 1], hcat(w[:, 2:end], factor_lags)
-    new_x, design_matrix = x[1,:], x[2:end, :]  # we reserve the last observation for prediction and dont use it for learning
+    x = hcat(ones(size(x, 1)), x)  # add a constant term to the regression
+    new_x, design_matrix = x[end,:], x[1:end-1, :]  # we reserve the last observation for prediction and dont use it for learning
+
+    println(size(design_matrix, 1), " observations vs ", size(design_matrix, 2), " variables")
     if size(design_matrix, 1) < size(design_matrix, 2)
         warn("more columns than rows in regression. Maybe try to reduce the number of common factors in the factor model.")
     end
     coefficients = inv(design_matrix'design_matrix)*design_matrix'y
     prediction = new_x*coefficients
+    residuals = y - design_matrix*coefficients  # returned for e.g. info criteria
     #residuals = y - prediction
     #hat_matrix = design_matrix*inv(design_matrix'design_matrix)*design_matrix'
     #residual_variance = (residuals.^2)./(1.-diag(hat_matrix))  # HC 2
     #coefficient_covariance = inv(design_matrix'design_matrix)*(design_matrix'diagm(residual_variance)design_matrix)*inv(design_matrix'design_matrix)
      
-    return(prediction[1])
+    return(residuals, prediction[1])
 end
+
 
 include("criteria.jl")  # defines the criteria in Bai and Ng 2002
