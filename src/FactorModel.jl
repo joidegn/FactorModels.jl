@@ -27,7 +27,7 @@ type FactorModel
     end
 
     function FactorModel(x::Matrix{Float64}, number_of_factors_criterion::String, factor_type::String="principal components"; max_factors = int(ceil(minimum(size(x))/2)))
-        println("finding optimal number of factors with maximum number of factors=", max_factors, " and information criterion=", number_of_factors_criterion)
+        #println("finding optimal number of factors with maximum number of factors=", max_factors, " and information criterion=", number_of_factors_criterion)
         # number of factors to include is not given but a criterion --> we use
         # the criterion to determine the number of factors using the Bai, Ng
         # information criteria.
@@ -120,7 +120,7 @@ end
 
 function predict(fm::FactorModel, y::Array{Float64, 1}, h::Int64=1, number_of_lags::Int64=5, number_of_factors::Int64=0)
     if number_of_factors == 0  # number of factors can be given to set them to a different value in the forecasting equation than in the factor equation
-        println("using the same number of factors for forecasting as in the factor equation: ", fm.number_of_factors)
+        #println("using the same number of factors for forecasting as in the factor equation: ", fm.number_of_factors)
         number_of_factors = fm.number_of_factors
     end
     # makes a h step ahead forecast of y (which can also be in the factor model)

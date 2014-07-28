@@ -93,7 +93,7 @@ function factor_model_DGP(T::Int, N::Int, r::Int; model::String="Bai_Ng_2002", b
         # TODO
     end
     if model=="Breitung_Eickmeier_2011"
-        println("Generating Breitung and Eickmeier data with break b=", b)
+        #println("Generating Breitung and Eickmeier data with break b=", b)
         break_point = mod(T, 2) == 0 ? int(T/2) : int(ceil(T/2))  # note that the break occurs after the period break_point
         sigma = rand(Distributions.Uniform(0.5, 1.5), N)  # each variable has a different variance in the idiosyncratic error terms
         # note that r is equal to 1 in the paper
@@ -118,7 +118,7 @@ function factor_model_DGP(T::Int, N::Int, r::Int; model::String="Bai_Ng_2002", b
     end
 
     if model=="single_break"  # delta meassures correlation between y and last column (i.e. amount of "information")
-        println("Generating data with break in last variable, break has size:", b, " correlation between y(first column) and last column is:", delta)
+        #println("Generating data with break in last variable, break has size:", b, " correlation between y(first column) and last column is:", delta)
         break_point = mod(T, 2) == 0 ? int(T/2) : int(ceil(T/2))  # note that the break occurs after the period break_point
         #sigma = rand(Distributions.Uniform(0.5, 1.5), N)  # each variable has a different variance in the idiosyncratic error terms
         correlation = Float64[default_correlation for y in 1:N, x in 1:N] + diagm(Float64[1-default_correlation for i in 1:N])  # correlation matrix with some correlation for all variables, unit variance

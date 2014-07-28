@@ -49,7 +49,7 @@ end
 
 function predict(dfm::DynamicFactorModel, y::Array{Float64, 1}, h::Int64=1, number_of_lags::Int64=5, number_of_factors::Int64=0)
     if number_of_factors == 0  # number of factors can be given to set them to a different value in the forecasting equation than in the factor equation
-        println("using the same number of factors for forecasting as in the factor equation: ", dfm.factor_model.number_of_factors)
+        #println("using the same number of factors for forecasting as in the factor equation: ", dfm.factor_model.number_of_factors)
         number_of_factors = dfm.factor_model.number_of_factors
     end
     # makes a h step ahead forecast of y using a linear regression on lags of y and static factors
@@ -64,7 +64,7 @@ function predict(dfm::DynamicFactorModel, y::Array{Float64, 1}, h::Int64=1, numb
     x = hcat(ones(size(x, 1)), x)  # add a constant term to the regression
     new_x, design_matrix = x[end,:], x[1:end-1, :]  # we reserve the last observation for prediction and dont use it for learning
 
-    println(size(design_matrix, 1), " observations vs ", size(design_matrix, 2), " variables")
+    #println(size(design_matrix, 1), " observations vs ", size(design_matrix, 2), " variables")
     if size(design_matrix, 1) < size(design_matrix, 2)
         warn("more columns than rows in regression. Maybe try to reduce the number of common factors in the factor model.")
     end
